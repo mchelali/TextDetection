@@ -46,6 +46,7 @@ private:
     Mat convolution(Mat input, int mask[3][3] );
     Mat calcConteur(Mat img);
     Mat filtreMoyenneur(Mat img);
+    Mat medianFilter(Mat src);
 
     Ui::MainWindow *ui;
     Mat img;
