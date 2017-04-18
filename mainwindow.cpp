@@ -218,10 +218,14 @@ void MainWindow::on_detecte_clicked()
     result = Mat::zeros(imagee.rows, imagee.cols, CV_8UC1);
     for(int i=0;i<imagee.rows;i++){
         for(int j=0;j<imagee.cols;j++){
-            result.at<uchar>(i,j) = (((int) imagee.at<uchar>(i,j)) * ((int) gray.at<uchar>(i,j)));
+            if( (int) object.at<uchar>(i,j) != 0 ){
+                result.at<uchar>(i,j) = 0;
+            }else{
+                result.at<uchar>(i,j) = (((int) imagee.at<uchar>(i,j)) * ((int) gray.at<uchar>(i,j)));
+            }
         }
     }
-    //threshold(result, result, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
+    threshold(result, result, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
 
     image = new QImage(result.data, result.cols, result.rows, result.step, QImage::Format_Indexed8);
     item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
@@ -248,7 +252,7 @@ void MainWindow::on_decObject_clicked()
                                           Point( erode_size, erode_size ) );
     erode(contour, object, element1);
 
-    Mat conv = Mat::zeros(object.rows, object.cols, CV_8UC1);
+    /*Mat conv = Mat::zeros(object.rows, object.cols, CV_8UC1);
     for(int i=1; i<object.rows-1 ;i++){
         for(int j=1; j<object.cols-1 ;j++){
             float pixel=0;
@@ -259,7 +263,12 @@ void MainWindow::on_decObject_clicked()
             }
             conv.at<char>(i,j) = (pixel/9);
         }
-    }
+    }*/
+
+    threshold(object, object, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
+
+    erode(object, object, element1);
+    //dilate(object, object , element);
 
     image = new QImage(object.data, object.cols, object.rows, object.step, QImage::Format_Indexed8);
     item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
