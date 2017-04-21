@@ -30,9 +30,9 @@ Mat MainWindow::calcConteur(Mat img)
     Mat cont = Mat::zeros(img.rows, img.cols, CV_8UC1);
 
     int mask[3][3]= {
-        { 1, 1, 1},
-        { 1,-8, 1},
-        { 1, 1, 1}};
+        { 0, -1, 0},
+        { -1, 4, -1},
+        { 0, -1, 0}};
     cont = convolution(img, mask);
 
     return cont;
@@ -240,6 +240,7 @@ void MainWindow::on_decObject_clicked()
     Mat contour;
     contour = this->calcConteur(gray);
 
+
     int dilation_size = 2;
     Mat element = getStructuringElement( MORPH_RECT,
                                          Size( 2*dilation_size + 1, 2*dilation_size+1 ),
@@ -252,23 +253,33 @@ void MainWindow::on_decObject_clicked()
                                           Point( erode_size, erode_size ) );
     erode(contour, object, element1);
 
-    /*Mat conv = Mat::zeros(object.rows, object.cols, CV_8UC1);
-    for(int i=1; i<object.rows-1 ;i++){
-        for(int j=1; j<object.cols-1 ;j++){
-            float pixel=0;
-            for(int x=-1; x<2;x++){
-                for(int y=-1;y<2;y++){
-                    pixel = pixel + ((int) object.at<uchar>(i+x,j+y));
-                }
-            }
-            conv.at<char>(i,j) = (pixel/9);
-        }
-    }*/
 
-    threshold(object, object, 0, 255, CV_THRESH_OTSU+CV_THRESH_BINARY);
+
+    threshold(object, object, 110, 255, CV_THRESH_OTSU);
 
     erode(object, object, element1);
-    //dilate(object, object , element);
+
+    vector<vector<Point>> contours;
+    vector<Vec4i> hierarchy;
+    findContours(object, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_NONE);
+
+    if(!contours.empty()){
+        //for every contour of the same hierarchy level
+        for(int i = 0; i >= 0; i = hierarchy[i][0])
+        {
+            /*for(vector<Point>::iterator it = contours[i].begin(); it != contours[i].end(); ++it){
+                //*it = *it + Point(50, 50);
+                qDebug() << len(*it);
+            }*/
+            Rect rect = boundingRect(contours[i]);
+            rect.x = rect.x-20;
+            rect.y = rect.y-20;
+            rect.height = rect.height+30;
+            rect.width = rect.width+30;
+            rectangle(object, rect, cv::Scalar(255), CV_FILLED);
+        }
+    }
+
 
     image = new QImage(object.data, object.cols, object.rows, object.step, QImage::Format_Indexed8);
     item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
