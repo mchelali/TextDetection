@@ -109,6 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
     scene3 = new QGraphicsScene();
     ui->graphicsView_3->setScene(scene3);
 
+    // intialisation de la fonctionnalité du zoom sur les differents GraphicViews
     QGraphicViewZoom *z = new QGraphicViewZoom(ui->graphicsView);
     z->set_modifiers(Qt::NoModifier);
 
@@ -139,14 +140,15 @@ void MainWindow::on_actionupload_image_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,"Open Image File","/Users/chelalimohamed-tayeb/Pictures");
 
     if(!fileName.isEmpty()){
+        // imread de opencv comprend que les string normal std::string, donc on doit convertir le type de QString vers le normal
         img = imread(fileName.toStdString());
 
         if(img.empty()){
             QMessageBox::information(this,"Image Viewer","Error Displaying image");
             return;
         }
-        cvtColor(img, img, CV_BGR2RGB);
-        cvtColor(img, gray, CV_RGB2GRAY);
+        cvtColor(img, img, CV_BGR2RGB);// ici on fait la convertion des couleurs BGR a RGB pour l'affichage correcte des couleurs
+        cvtColor(img, gray, CV_RGB2GRAY);// on transforme img vers le gris
 
         image = new QImage(img.data, img.cols, img.rows,img.step , QImage::Format_RGB888);
         item = new QGraphicsPixmapItem(QPixmap::fromImage(*image));
@@ -207,13 +209,11 @@ void MainWindow::on_detecte_clicked()
     dilate(imagee, imagee, element);
 
 
-    /*int erode_size = 3;
+    int erode_size = 7;
     Mat element1 = getStructuringElement( MORPH_RECT,
                                           Size( 2*erode_size + 1, 2*erode_size+1 ),
                                           Point( erode_size, erode_size ) );
     erode(imagee, imagee, element1);
-    imagee = this->medianFilter(imagee);*/
-    imagee = this->medianFilter(imagee);
 
     result = Mat::zeros(imagee.rows, imagee.cols, CV_8UC1);
     for(int i=0;i<imagee.rows;i++){
@@ -267,10 +267,7 @@ void MainWindow::on_decObject_clicked()
         //for every contour of the same hierarchy level
         for(int i = 0; i >= 0; i = hierarchy[i][0])
         {
-            /*for(vector<Point>::iterator it = contours[i].begin(); it != contours[i].end(); ++it){
-                //*it = *it + Point(50, 50);
-                qDebug() << len(*it);
-            }*/
+
             Rect rect = boundingRect(contours[i]);
             rect.x = rect.x-20;
             rect.y = rect.y-20;
